@@ -1,7 +1,9 @@
 [package]
+authors = ["Matt Jones <jonesmr@gmail.com>"]
+description = "Library for serializing Google protobuf objects as JSON using Rust."
+license = "MIT"
 name = "protobuf-json"
 version = "0.1.0"
-authors = ["Matt Jones <jonesmr@gmail.com>"]
 
 [dependencies]
 protobuf = "*"
