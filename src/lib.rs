@@ -37,15 +37,23 @@ fn collect_repeated(
 
 fn repeated_field_to_json(message: &protobuf::Message,
                           field_descriptor: &protobuf::reflect::FieldDescriptor) -> serde_json::Value {
+    use protobuf::descriptor::FieldDescriptorProto_Type;
+    use serde_json::Value;
+
     match field_descriptor.proto().get_field_type() {
-        protobuf::descriptor::FieldDescriptorProto_Type::TYPE_MESSAGE => {
-            return serde_json::Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
-                return proto_to_json(field_descriptor.get_rep_message_item(msg, i));
+        FieldDescriptorProto_Type::TYPE_DOUBLE => {
+            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
+                return Value::F64(field_descriptor.get_rep_f64(msg)[i]);
             }));
         },
-        protobuf::descriptor::FieldDescriptorProto_Type::TYPE_STRING => {
-            return serde_json::Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
-                return serde_json::Value::String(field_descriptor.get_rep_str_item(msg, i).to_string());
+        FieldDescriptorProto_Type::TYPE_STRING => {
+            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
+                return Value::String(field_descriptor.get_rep_str_item(msg, i).to_string());
+            }));
+        },
+        FieldDescriptorProto_Type::TYPE_MESSAGE => {
+            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
+                return proto_to_json(field_descriptor.get_rep_message_item(msg, i));
             }));
         },
         _ => unimplemented!(),

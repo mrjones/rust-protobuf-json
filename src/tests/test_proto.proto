@@ -23,9 +23,11 @@ message FullProto {
   bytes bytes_field = 15;
   
   SubMessage sub_message_field = 16;
+
+  repeated double repeated_double_field = 100;
+  
   // TODO: Repeated
   // TODO: Enum
-  // TODO: Nested message
   // TODO: Maps
   // TODO: Oneof?
   // TODO: Extensions?

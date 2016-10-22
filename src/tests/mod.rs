@@ -36,6 +36,8 @@ fn full_proto_to_json() {
 
     p.mut_sub_message_field().set_sub_string_field(
         "sub_string_value".to_string());
+
+    p.set_repeated_double_field(vec![100.0, 200.0]);
     
     let actual = super::proto_to_json(&p);
     let mut expected = serde_json::Map::new();
@@ -66,5 +68,12 @@ fn full_proto_to_json() {
         expected.insert("sub_message_field".to_string(),
                         serde_json::Value::Object(sub_expected));
     }
+
+    expected.insert("repeated_double_field".to_string(),
+                    serde_json::Value::Array(vec![
+                        serde_json::Value::F64(100.0),
+                        serde_json::Value::F64(200.0),
+                    ]));
+    
     assert_eq!(serde_json::Value::Object(expected), actual);
 }
