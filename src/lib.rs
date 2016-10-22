@@ -27,10 +27,11 @@ fn field_to_json(message: &protobuf::Message,
 // Most field types already have a function for extracting a Vec<T> directly,
 // however a few (e.g. Message) only have "len" and "get_item(i)" functions.
 // This function uses the len & get_item functions in order to create vector.
-fn extract_vec_shim<T>(
-    message: &protobuf::Message,
+#[allow(dead_code)]
+fn extract_vec_shim<'a, T>(
+    message: &'a protobuf::Message,
     get_size_fn: &Fn(&protobuf::Message) -> usize,
-    extract_one_fn: &Fn(&protobuf::Message, usize) -> T) -> Vec<T> {
+    extract_one_fn: &Fn(&'a protobuf::Message, usize) -> &'a T) -> Vec<&'a T> {
 
     let size = get_size_fn(message);
     let mut v = Vec::new();
@@ -115,16 +116,27 @@ fn repeated_field_to_json(message: &protobuf::Message,
                 &|m| field_descriptor.get_rep_bytes(m).to_vec(),
                 &|v| Value::String(std::str::from_utf8(&v).unwrap().to_string()));
         },
-//        FieldDescriptorProto_Type::TYPE_MESSAGE => {
-//            return repeated_to_serde_array(
-//                message,
-//                &|m1| extract_vec_shim(
-//                    m1,
-//                    &|m2| field_descriptor.len_field(m2),
-//                    &|m2, i| field_descriptor.get_rep_message_item(m2, i),
-//                ),
-//                &proto_to_json);
-//        },
+        FieldDescriptorProto_Type::TYPE_MESSAGE => {
+            let mut sub_messages: Vec<&protobuf::Message> = Vec::new();
+            for i in 0..field_descriptor.len_field(message) {
+                sub_messages.push(
+                    field_descriptor.get_rep_message_item(message, i));
+            }
+
+            return Value::Array(sub_messages.into_iter().map(
+                |sub_message| proto_to_json(sub_message)).collect());
+
+            /* TODO: why doesn't this work?
+            return repeated_to_serde_array(
+                message,
+                &|m1: &protobuf::Message| extract_vec_shim(
+                    m1,
+                    &|m2| field_descriptor.len_field(m2),
+                    &|m2, i| field_descriptor.get_rep_message_item(m2, i),
+                ),
+                &|m: &protobuf::Message| proto_to_json(m));
+             */
+        },
         _ => unimplemented!(),
     }
 }

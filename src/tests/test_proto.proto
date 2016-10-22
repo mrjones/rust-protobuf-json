@@ -21,7 +21,6 @@ message FullProto {
   bool bool_field = 13;
   string string_field = 14;
   bytes bytes_field = 15;
-  
   SubMessage sub_message_field = 16;
 
   repeated double repeated_double_field = 100;
@@ -39,8 +38,8 @@ message FullProto {
   repeated bool repeated_bool_field = 112;
   repeated string repeated_string_field = 113;
   repeated bytes repeated_bytes_field = 114;
+  repeated SubMessage repeated_sub_message_field = 115;
   
-  // TODO: Repeated
   // TODO: Enum
   // TODO: Maps
   // TODO: Oneof?

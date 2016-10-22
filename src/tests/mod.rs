@@ -55,6 +55,12 @@ fn full_proto_to_json() {
         vec!["string1".to_string(), "string2".to_string()]));
     p.set_repeated_bytes_field(protobuf::RepeatedField::from_vec(
         vec![vec![1,2,3], vec![10, 11, 12]]));
+    p.set_repeated_sub_message_field(protobuf::RepeatedField::from_vec(
+        vec!["sub_string1", "sub_string2"].iter().map(|s| {
+            let mut sub_message = test_proto::SubMessage::new();
+            sub_message.set_sub_string_field(s.to_string());
+            return sub_message;
+        }).collect()));
     
     let actual = super::proto_to_json(&p);
     let mut expected = serde_json::Map::new();
@@ -122,6 +128,20 @@ fn full_proto_to_json() {
                             |x| std::str::from_utf8(x).unwrap().to_string()).collect(),
                         &serde_json::Value::String));
 
+    {
+        expected.insert(
+            "repeated_sub_message_field".to_string(),
+            serde_json::Value::Array(
+                vec!["sub_string1", "sub_string2"].iter().map(|s| {
+                    let mut sub_expected = serde_json::Map::new();
+                    sub_expected.insert(
+                        "sub_string_field".to_string(),
+                        serde_json::Value::String(s.to_string()));
+                    return serde_json::Value::Object(sub_expected);
+                }).collect()));
+    }
+
+    
     assert_eq!(serde_json::Value::Object(expected), actual);
 }
 
