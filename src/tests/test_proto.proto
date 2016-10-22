@@ -25,6 +25,11 @@ message FullProto {
   SubMessage sub_message_field = 16;
 
   repeated double repeated_double_field = 100;
+  repeated double repeated_float_field = 101;
+  repeated int32 repeated_int32_field = 103;
+  repeated int64 repeated_int64_field = 104;
+  repeated uint32 repeated_uint32_field = 105;
+  repeated uint64 repeated_uint64_field = 106;
   
   // TODO: Repeated
   // TODO: Enum

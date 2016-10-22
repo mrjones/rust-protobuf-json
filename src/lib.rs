@@ -46,6 +46,31 @@ fn repeated_field_to_json(message: &protobuf::Message,
                 return Value::F64(field_descriptor.get_rep_f64(msg)[i]);
             }));
         },
+        FieldDescriptorProto_Type::TYPE_FLOAT => {
+            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
+                return Value::F64(field_descriptor.get_rep_f32(msg)[i] as f64);
+            }));
+        },
+        FieldDescriptorProto_Type::TYPE_INT32 => {
+            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
+                return Value::I64(field_descriptor.get_rep_i32(msg)[i] as i64);
+            }));
+        },
+        FieldDescriptorProto_Type::TYPE_INT64 => {
+            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
+                return Value::I64(field_descriptor.get_rep_i64(msg)[i]);
+            }));
+        },
+        FieldDescriptorProto_Type::TYPE_UINT32 => {
+            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
+                return Value::U64(field_descriptor.get_rep_u32(msg)[i] as u64);
+            }));
+        },
+        FieldDescriptorProto_Type::TYPE_UINT64 => {
+            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
+                return Value::U64(field_descriptor.get_rep_u64(msg)[i]);
+            }));
+        },
         FieldDescriptorProto_Type::TYPE_STRING => {
             return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
                 return Value::String(field_descriptor.get_rep_str_item(msg, i).to_string());

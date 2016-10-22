@@ -38,6 +38,11 @@ fn full_proto_to_json() {
         "sub_string_value".to_string());
 
     p.set_repeated_double_field(vec![100.0, 200.0]);
+    p.set_repeated_float_field(vec![101.0, 201.0]);
+    p.set_repeated_int32_field(vec![102, 202]);
+    p.set_repeated_int64_field(vec![103, 203]);
+    p.set_repeated_uint32_field(vec![104, 204]);
+    p.set_repeated_uint64_field(vec![105, 205]);
     
     let actual = super::proto_to_json(&p);
     let mut expected = serde_json::Map::new();
@@ -70,10 +75,21 @@ fn full_proto_to_json() {
     }
 
     expected.insert("repeated_double_field".to_string(),
-                    serde_json::Value::Array(vec![
-                        serde_json::Value::F64(100.0),
-                        serde_json::Value::F64(200.0),
-                    ]));
-    
+                    to_serde_array(vec![100., 200.], &serde_json::Value::F64));
+    expected.insert("repeated_float_field".to_string(),
+                    to_serde_array(vec![101., 201.], &serde_json::Value::F64));
+    expected.insert("repeated_int32_field".to_string(),
+                    to_serde_array(vec![102, 202], &serde_json::Value::I64));
+    expected.insert("repeated_int64_field".to_string(),
+                    to_serde_array(vec![103, 203], &serde_json::Value::I64));
+    expected.insert("repeated_uint32_field".to_string(),
+                    to_serde_array(vec![104, 204], &serde_json::Value::U64));
+    expected.insert("repeated_uint64_field".to_string(),
+                    to_serde_array(vec![105, 205], &serde_json::Value::U64));
+
     assert_eq!(serde_json::Value::Object(expected), actual);
+}
+
+fn to_serde_array<T>(v: Vec<T>, conv_fn: &Fn(T) -> serde_json::Value) -> serde_json::Value {
+    return serde_json::Value::Array(v.into_iter().map(conv_fn).collect());
 }
