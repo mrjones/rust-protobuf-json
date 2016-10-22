@@ -54,24 +54,52 @@ fn repeated_field_to_json(message: &protobuf::Message,
 
 fn singular_field_to_json(message: &protobuf::Message,
                           field_descriptor: &protobuf::reflect::FieldDescriptor) -> serde_json::Value {
+    use protobuf::descriptor::FieldDescriptorProto_Type;
+    use serde_json::Value;
+
+    println!("Considering: {:?}", field_descriptor.proto());
+    
     match field_descriptor.proto().get_field_type() {
-        protobuf::descriptor::FieldDescriptorProto_Type::TYPE_MESSAGE => {
+        FieldDescriptorProto_Type::TYPE_DOUBLE => {
+            return Value::F64(field_descriptor.get_f64(message));
+        },
+        FieldDescriptorProto_Type::TYPE_FLOAT => {
+            return Value::F64(field_descriptor.get_f32(message) as f64);
+        },
+        FieldDescriptorProto_Type::TYPE_INT32 |
+        FieldDescriptorProto_Type::TYPE_SINT32 |
+        FieldDescriptorProto_Type::TYPE_SFIXED32 => {
+            return Value::I64(field_descriptor.get_i32(message) as i64);
+        },
+        FieldDescriptorProto_Type::TYPE_INT64 |
+        FieldDescriptorProto_Type::TYPE_SINT64 |
+        FieldDescriptorProto_Type::TYPE_SFIXED64 => {
+            return Value::I64(field_descriptor.get_i64(message));
+        },
+        FieldDescriptorProto_Type::TYPE_UINT32 |
+        FieldDescriptorProto_Type::TYPE_FIXED32 => {
+            return Value::U64(field_descriptor.get_u32(message) as u64);
+        },
+        FieldDescriptorProto_Type::TYPE_UINT64 |
+        FieldDescriptorProto_Type::TYPE_FIXED64 => {
+            return Value::U64(field_descriptor.get_u64(message));
+        },
+        FieldDescriptorProto_Type::TYPE_BOOL => {
+            return Value::Bool(field_descriptor.get_bool(message));
+        },
+        FieldDescriptorProto_Type::TYPE_STRING => {
+            return Value::String(field_descriptor.get_str(message).to_string());
+        },
+        FieldDescriptorProto_Type::TYPE_BYTES => {
+            return Value::String(
+                std::str::from_utf8(
+                    field_descriptor.get_bytes(message)).unwrap().to_string());
+        },
+        FieldDescriptorProto_Type::TYPE_MESSAGE => {
             let sub_message: &protobuf::Message =
                 field_descriptor.get_message(message);
             return proto_to_json(sub_message);
         },
-        protobuf::descriptor::FieldDescriptorProto_Type::TYPE_STRING => {
-            return serde_json::Value::String(field_descriptor.get_str(message).to_string());
-        },
-        protobuf::descriptor::FieldDescriptorProto_Type::TYPE_INT32 => {
-            return serde_json::Value::I64(field_descriptor.get_i32(message) as i64);
-        },
-        protobuf::descriptor::FieldDescriptorProto_Type::TYPE_INT64 => {
-            return serde_json::Value::I64(field_descriptor.get_i64(message));
-        },
-        protobuf::descriptor::FieldDescriptorProto_Type::TYPE_UINT64 => {
-            return serde_json::Value::U64(field_descriptor.get_u64(message));
-        }
         _ => unimplemented!(),
     }
 }
