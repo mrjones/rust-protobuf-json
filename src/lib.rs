@@ -67,25 +67,31 @@ fn repeated_field_to_json(message: &protobuf::Message,
                 &|m| field_descriptor.get_rep_f32(m).to_vec(),
                 &|v| Value::F64(v as f64));
         },
-        FieldDescriptorProto_Type::TYPE_INT32 => {
+        FieldDescriptorProto_Type::TYPE_INT32 |
+        FieldDescriptorProto_Type::TYPE_SINT32 |
+        FieldDescriptorProto_Type::TYPE_SFIXED32 => {
             return repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_i32(m).to_vec(),
                 &|v| Value::I64(v as i64));
         },
-        FieldDescriptorProto_Type::TYPE_INT64 => {
+        FieldDescriptorProto_Type::TYPE_INT64 |
+        FieldDescriptorProto_Type::TYPE_SINT64 |
+        FieldDescriptorProto_Type::TYPE_SFIXED64 => {
             return repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_i64(m).to_vec(),
                 &Value::I64);
         },
-        FieldDescriptorProto_Type::TYPE_UINT32 => {
+        FieldDescriptorProto_Type::TYPE_UINT32 |
+        FieldDescriptorProto_Type::TYPE_FIXED32 => {
             return repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_u32(m).to_vec(),
                 &|v| Value::U64(v as u64));
         },
-        FieldDescriptorProto_Type::TYPE_UINT64 => {
+        FieldDescriptorProto_Type::TYPE_UINT64 |
+        FieldDescriptorProto_Type::TYPE_FIXED64 => {
             return repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_u64(m).to_vec(),

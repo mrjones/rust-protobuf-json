@@ -43,6 +43,12 @@ fn full_proto_to_json() {
     p.set_repeated_int64_field(vec![103, 203]);
     p.set_repeated_uint32_field(vec![104, 204]);
     p.set_repeated_uint64_field(vec![105, 205]);
+    p.set_repeated_sint32_field(vec![106, 206]);
+    p.set_repeated_sint64_field(vec![107, 207]);
+    p.set_repeated_fixed32_field(vec![108, 208]);
+    p.set_repeated_fixed64_field(vec![109, 209]);
+    p.set_repeated_sfixed32_field(vec![110, 210]);
+    p.set_repeated_sfixed64_field(vec![111, 211]);
     
     let actual = super::proto_to_json(&p);
     let mut expected = serde_json::Map::new();
@@ -86,6 +92,18 @@ fn full_proto_to_json() {
                     to_serde_array(vec![104, 204], &serde_json::Value::U64));
     expected.insert("repeated_uint64_field".to_string(),
                     to_serde_array(vec![105, 205], &serde_json::Value::U64));
+    expected.insert("repeated_sint32_field".to_string(),
+                    to_serde_array(vec![106, 206], &serde_json::Value::I64));
+    expected.insert("repeated_sint64_field".to_string(),
+                    to_serde_array(vec![107, 207], &serde_json::Value::I64));
+    expected.insert("repeated_fixed32_field".to_string(),
+                    to_serde_array(vec![108, 208], &serde_json::Value::U64));
+    expected.insert("repeated_fixed64_field".to_string(),
+                    to_serde_array(vec![109, 209], &serde_json::Value::U64));
+    expected.insert("repeated_sfixed32_field".to_string(),
+                    to_serde_array(vec![110, 210], &serde_json::Value::I64));
+    expected.insert("repeated_sfixed64_field".to_string(),
+                    to_serde_array(vec![111, 211], &serde_json::Value::I64));
 
     assert_eq!(serde_json::Value::Object(expected), actual);
 }
