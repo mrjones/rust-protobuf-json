@@ -34,6 +34,9 @@ fn full_proto_to_json() {
     p.set_string_field("string_val".to_string());
     p.set_bytes_field(vec![1, 2, 3]);
 
+    p.mut_sub_message_field().set_sub_string_field(
+        "sub_string_value".to_string());
+    
     let actual = super::proto_to_json(&p);
     let mut expected = serde_json::Map::new();
     expected.insert("double_field".to_string(), serde_json::Value::F64(1.0));
@@ -54,5 +57,14 @@ fn full_proto_to_json() {
     expected.insert("bytes_field".to_string(),
                     serde_json::Value::String(
                         std::str::from_utf8(&[1,2,3]).unwrap().to_string()));
+
+    {
+        let mut sub_expected = serde_json::Map::new();
+        sub_expected.insert(
+            "sub_string_field".to_string(),
+            serde_json::Value::String("sub_string_value".to_string()));
+        expected.insert("sub_message_field".to_string(),
+                        serde_json::Value::Object(sub_expected));
+    }
     assert_eq!(serde_json::Value::Object(expected), actual);
 }

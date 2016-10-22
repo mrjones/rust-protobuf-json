@@ -21,11 +21,16 @@ message FullProto {
   bool bool_field = 13;
   string string_field = 14;
   bytes bytes_field = 15;
-
+  
+  SubMessage sub_message_field = 16;
   // TODO: Repeated
   // TODO: Enum
   // TODO: Nested message
   // TODO: Maps
   // TODO: Oneof?
   // TODO: Extensions?
+}
+
+message SubMessage {
+  string sub_string_field = 1;
 }
