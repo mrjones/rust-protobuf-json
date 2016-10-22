@@ -137,6 +137,14 @@ fn repeated_field_to_json(message: &protobuf::Message,
                 &|m: &protobuf::Message| proto_to_json(m));
              */
         },
+        FieldDescriptorProto_Type::TYPE_ENUM => {
+            let mut enums = Vec::new();
+            for i in 0..field_descriptor.len_field(message) {
+                enums.push(field_descriptor.get_rep_enum_item(message, i));
+            }
+            return Value::Array(enums.into_iter().map(
+                |e| Value::String(e.name().to_string())).collect());
+        },
         _ => unimplemented!(),
     }
 }
@@ -188,6 +196,11 @@ fn singular_field_to_json(message: &protobuf::Message,
             let sub_message: &protobuf::Message =
                 field_descriptor.get_message(message);
             return proto_to_json(sub_message);
+        },
+        FieldDescriptorProto_Type::TYPE_ENUM => {
+            return Value::String(
+                field_descriptor.get_enum(message).name().to_string());
+            
         },
         _ => unimplemented!(),
     }

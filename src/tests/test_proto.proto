@@ -6,6 +6,11 @@ message SimpleProto {
 
 // See https://developers.google.com/protocol-buffers/docs/proto3
 message FullProto {
+  enum TestEnum {
+    TEST_ENUM_VALUE_A = 0;
+    TEST_ENUM_VALUE_B = 1;
+  }
+
   double double_field = 1;
   float float_field = 2;
   int32 int32_field = 3;
@@ -22,7 +27,8 @@ message FullProto {
   string string_field = 14;
   bytes bytes_field = 15;
   SubMessage sub_message_field = 16;
-
+  TestEnum enum_field = 17;
+  
   repeated double repeated_double_field = 100;
   repeated double repeated_float_field = 101;
   repeated int32 repeated_int32_field = 102;
@@ -39,6 +45,7 @@ message FullProto {
   repeated string repeated_string_field = 113;
   repeated bytes repeated_bytes_field = 114;
   repeated SubMessage repeated_sub_message_field = 115;
+  repeated TestEnum repeated_enum_field = 116;
   
   // TODO: Enum
   // TODO: Maps

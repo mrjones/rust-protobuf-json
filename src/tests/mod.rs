@@ -34,9 +34,9 @@ fn full_proto_to_json() {
     p.set_bool_field(true);
     p.set_string_field("string_val".to_string());
     p.set_bytes_field(vec![1, 2, 3]);
-
     p.mut_sub_message_field().set_sub_string_field(
         "sub_string_value".to_string());
+    p.set_enum_field(test_proto::FullProto_TestEnum::TEST_ENUM_VALUE_A);
 
     p.set_repeated_double_field(vec![100.0, 200.0]);
     p.set_repeated_float_field(vec![101.0, 201.0]);
@@ -61,6 +61,10 @@ fn full_proto_to_json() {
             sub_message.set_sub_string_field(s.to_string());
             return sub_message;
         }).collect()));
+    p.set_repeated_enum_field(vec![
+        test_proto::FullProto_TestEnum::TEST_ENUM_VALUE_A,
+        test_proto::FullProto_TestEnum::TEST_ENUM_VALUE_B,
+    ]);
     
     let actual = super::proto_to_json(&p);
     let mut expected = serde_json::Map::new();
@@ -82,6 +86,8 @@ fn full_proto_to_json() {
     expected.insert("bytes_field".to_string(),
                     serde_json::Value::String(
                         std::str::from_utf8(&[1,2,3]).unwrap().to_string()));
+    expected.insert("enum_field".to_string(),
+                    serde_json::Value::String("TEST_ENUM_VALUE_A".to_string()));
 
     {
         let mut sub_expected = serde_json::Map::new();
@@ -128,18 +134,24 @@ fn full_proto_to_json() {
                             |x| std::str::from_utf8(x).unwrap().to_string()).collect(),
                         &serde_json::Value::String));
 
-    {
-        expected.insert(
-            "repeated_sub_message_field".to_string(),
-            serde_json::Value::Array(
-                vec!["sub_string1", "sub_string2"].iter().map(|s| {
-                    let mut sub_expected = serde_json::Map::new();
-                    sub_expected.insert(
-                        "sub_string_field".to_string(),
-                        serde_json::Value::String(s.to_string()));
-                    return serde_json::Value::Object(sub_expected);
-                }).collect()));
-    }
+    expected.insert(
+        "repeated_sub_message_field".to_string(),
+        serde_json::Value::Array(
+            vec!["sub_string1", "sub_string2"].iter().map(|s| {
+                let mut sub_expected = serde_json::Map::new();
+                sub_expected.insert(
+                    "sub_string_field".to_string(),
+                    serde_json::Value::String(s.to_string()));
+                return serde_json::Value::Object(sub_expected);
+            }).collect()));
+
+    expected.insert(
+        "repeated_enum_field".to_string(),
+        serde_json::Value::Array(vec![
+            serde_json::Value::String("TEST_ENUM_VALUE_A".to_string()),
+            serde_json::Value::String("TEST_ENUM_VALUE_B".to_string()),
+        ]));
+            
 
     
     assert_eq!(serde_json::Value::Object(expected), actual);
