@@ -1,6 +1,9 @@
 extern crate protobuf;
 extern crate serde_json;
 
+#[cfg(test)]
+mod tests;
+
 pub fn proto_to_json(message: &protobuf::Message) -> serde_json::Value {
     let mut map = serde_json::Map::new();
 
@@ -70,12 +73,5 @@ fn singular_field_to_json(message: &protobuf::Message,
             return serde_json::Value::U64(field_descriptor.get_u64(message));
         }
         _ => unimplemented!(),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
     }
 }

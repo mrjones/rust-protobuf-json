@@ -1,0 +1,5 @@
+syntax = "proto3";
+
+message SimpleProto {
+  int64 int_field = 1;
+}
