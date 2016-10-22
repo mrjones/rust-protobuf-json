@@ -23,16 +23,30 @@ fn field_to_json(message: &protobuf::Message,
     }
 }
 
-fn collect_repeated(
+// Extracts a Vec<T> from a repeated proto field.
+// Most field types already have a function for extracting a Vec<T> directly,
+// however a few (e.g. Message) only have "len" and "get_item(i)" functions.
+// This function uses the len & get_item functions in order to create vector.
+fn extract_vec_shim<T>(
     message: &protobuf::Message,
-    field_descriptor: &protobuf::reflect::FieldDescriptor,
-    extract_fn: &Fn(&protobuf::Message, usize) -> serde_json::Value) -> Vec<serde_json::Value> {
+    get_size_fn: &Fn(&protobuf::Message) -> usize,
+    extract_one_fn: &Fn(&protobuf::Message, usize) -> T) -> Vec<T> {
 
-    let mut jsons = vec![];
-    for i in 0..field_descriptor.len_field(message) {
-        jsons.push(extract_fn(message, i));
+    let size = get_size_fn(message);
+    let mut v = Vec::new();
+    for i in 0..size {
+        v.push(extract_one_fn(message, i));
     }
-    return jsons;
+    return v;
+}
+
+fn repeated_to_serde_array<T>(
+    message: &protobuf::Message,
+    extract_fn: &Fn(&protobuf::Message) -> Vec<T>,
+    convert_one_fn: &Fn(T) -> serde_json::Value) -> serde_json::Value {
+
+    return serde_json::Value::Array(
+        extract_fn(message).into_iter().map(convert_one_fn).collect());
 }
 
 fn repeated_field_to_json(message: &protobuf::Message,
@@ -42,45 +56,57 @@ fn repeated_field_to_json(message: &protobuf::Message,
 
     match field_descriptor.proto().get_field_type() {
         FieldDescriptorProto_Type::TYPE_DOUBLE => {
-            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
-                return Value::F64(field_descriptor.get_rep_f64(msg)[i]);
-            }));
+            return repeated_to_serde_array(
+                message,
+                &|m| field_descriptor.get_rep_f64(m).to_vec(),
+                &Value::F64);
         },
         FieldDescriptorProto_Type::TYPE_FLOAT => {
-            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
-                return Value::F64(field_descriptor.get_rep_f32(msg)[i] as f64);
-            }));
+            return repeated_to_serde_array(
+                message,
+                &|m| field_descriptor.get_rep_f32(m).to_vec(),
+                &|v| Value::F64(v as f64));
         },
         FieldDescriptorProto_Type::TYPE_INT32 => {
-            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
-                return Value::I64(field_descriptor.get_rep_i32(msg)[i] as i64);
-            }));
+            return repeated_to_serde_array(
+                message,
+                &|m| field_descriptor.get_rep_i32(m).to_vec(),
+                &|v| Value::I64(v as i64));
         },
         FieldDescriptorProto_Type::TYPE_INT64 => {
-            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
-                return Value::I64(field_descriptor.get_rep_i64(msg)[i]);
-            }));
+            return repeated_to_serde_array(
+                message,
+                &|m| field_descriptor.get_rep_i64(m).to_vec(),
+                &Value::I64);
         },
         FieldDescriptorProto_Type::TYPE_UINT32 => {
-            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
-                return Value::U64(field_descriptor.get_rep_u32(msg)[i] as u64);
-            }));
+            return repeated_to_serde_array(
+                message,
+                &|m| field_descriptor.get_rep_u32(m).to_vec(),
+                &|v| Value::U64(v as u64));
         },
         FieldDescriptorProto_Type::TYPE_UINT64 => {
-            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
-                return Value::U64(field_descriptor.get_rep_u64(msg)[i]);
-            }));
+            return repeated_to_serde_array(
+                message,
+                &|m| field_descriptor.get_rep_u64(m).to_vec(),
+                &Value::U64);
         },
         FieldDescriptorProto_Type::TYPE_STRING => {
-            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
-                return Value::String(field_descriptor.get_rep_str_item(msg, i).to_string());
-            }));
+            return repeated_to_serde_array(
+                message,
+                &|m| field_descriptor.get_rep_str(m).to_vec(),
+                &Value::String);
         },
-        FieldDescriptorProto_Type::TYPE_MESSAGE => {
-            return Value::Array(collect_repeated(message, field_descriptor, &|msg, i| {
-                return proto_to_json(field_descriptor.get_rep_message_item(msg, i));
-            }));
-        },
+//        FieldDescriptorProto_Type::TYPE_MESSAGE => {
+//            return repeated_to_serde_array(
+//                message,
+//                &|m1| extract_vec_shim(
+//                    m1,
+//                    &|m2| field_descriptor.len_field(m2),
+//                    &|m2, i| field_descriptor.get_rep_message_item(m2, i),
+//                ),
+//                &proto_to_json);
+//        },
         _ => unimplemented!(),
     }
 }
