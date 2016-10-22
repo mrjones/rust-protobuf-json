@@ -47,7 +47,6 @@ message FullProto {
   repeated SubMessage repeated_sub_message_field = 115;
   repeated TestEnum repeated_enum_field = 116;
   
-  // TODO: Enum
   // TODO: Maps
   // TODO: Oneof?
   // TODO: Extensions?

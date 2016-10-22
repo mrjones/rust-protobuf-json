@@ -145,7 +145,7 @@ fn repeated_field_to_json(message: &protobuf::Message,
             return Value::Array(enums.into_iter().map(
                 |e| Value::String(e.name().to_string())).collect());
         },
-        _ => unimplemented!(),
+        FieldDescriptorProto_Type::TYPE_GROUP => unimplemented!(),
     }
 }
 
@@ -154,8 +154,6 @@ fn singular_field_to_json(message: &protobuf::Message,
     use protobuf::descriptor::FieldDescriptorProto_Type;
     use serde_json::Value;
 
-    println!("Considering: {:?}", field_descriptor.proto());
-    
     match field_descriptor.proto().get_field_type() {
         FieldDescriptorProto_Type::TYPE_DOUBLE => {
             return Value::F64(field_descriptor.get_f64(message));
@@ -202,6 +200,6 @@ fn singular_field_to_json(message: &protobuf::Message,
                 field_descriptor.get_enum(message).name().to_string());
             
         },
-        _ => unimplemented!(),
+        FieldDescriptorProto_Type::TYPE_GROUP => unimplemented!(),
     }
 }
