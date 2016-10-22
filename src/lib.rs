@@ -97,11 +97,23 @@ fn repeated_field_to_json(message: &protobuf::Message,
                 &|m| field_descriptor.get_rep_u64(m).to_vec(),
                 &Value::U64);
         },
+        FieldDescriptorProto_Type::TYPE_BOOL => {
+            return repeated_to_serde_array(
+                message,
+                &|m| field_descriptor.get_rep_bool(m).to_vec(),
+                &Value::Bool);
+        },
         FieldDescriptorProto_Type::TYPE_STRING => {
             return repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_str(m).to_vec(),
                 &Value::String);
+        },
+        FieldDescriptorProto_Type::TYPE_BYTES => {
+            return repeated_to_serde_array(
+                message,
+                &|m| field_descriptor.get_rep_bytes(m).to_vec(),
+                &|v| Value::String(std::str::from_utf8(&v).unwrap().to_string()));
         },
 //        FieldDescriptorProto_Type::TYPE_MESSAGE => {
 //            return repeated_to_serde_array(

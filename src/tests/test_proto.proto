@@ -36,6 +36,9 @@ message FullProto {
   repeated fixed64 repeated_fixed64_field = 109;
   repeated sfixed32 repeated_sfixed32_field = 110;
   repeated sfixed64 repeated_sfixed64_field = 111;
+  repeated bool repeated_bool_field = 112;
+  repeated string repeated_string_field = 113;
+  repeated bytes repeated_bytes_field = 114;
   
   // TODO: Repeated
   // TODO: Enum

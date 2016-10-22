@@ -1,3 +1,4 @@
+extern crate protobuf;
 extern crate serde_json;
 extern crate std;
 
@@ -49,6 +50,11 @@ fn full_proto_to_json() {
     p.set_repeated_fixed64_field(vec![109, 209]);
     p.set_repeated_sfixed32_field(vec![110, 210]);
     p.set_repeated_sfixed64_field(vec![111, 211]);
+    p.set_repeated_bool_field(vec![true, false]);
+    p.set_repeated_string_field(protobuf::RepeatedField::from_vec(
+        vec!["string1".to_string(), "string2".to_string()]));
+    p.set_repeated_bytes_field(protobuf::RepeatedField::from_vec(
+        vec![vec![1,2,3], vec![10, 11, 12]]));
     
     let actual = super::proto_to_json(&p);
     let mut expected = serde_json::Map::new();
@@ -104,6 +110,17 @@ fn full_proto_to_json() {
                     to_serde_array(vec![110, 210], &serde_json::Value::I64));
     expected.insert("repeated_sfixed64_field".to_string(),
                     to_serde_array(vec![111, 211], &serde_json::Value::I64));
+    expected.insert("repeated_bool_field".to_string(),
+                    to_serde_array(vec![true, false], &serde_json::Value::Bool));
+    expected.insert("repeated_string_field".to_string(),
+                    to_serde_array(
+                        vec!["string1".to_string(), "string2".to_string()],
+                        &serde_json::Value::String));
+    expected.insert("repeated_bytes_field".to_string(),
+                    to_serde_array(
+                        vec![vec![1,2,3], vec![10,11,12]].iter().map(
+                            |x| std::str::from_utf8(x).unwrap().to_string()).collect(),
+                        &serde_json::Value::String));
 
     assert_eq!(serde_json::Value::Object(expected), actual);
 }
