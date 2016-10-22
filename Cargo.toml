@@ -1,0 +1,8 @@
+[package]
+name = "protobuf-json"
+version = "0.1.0"
+authors = ["Matt Jones <jonesmr@gmail.com>"]
+
+[dependencies]
+protobuf = "*"
+serde_json = "*"
