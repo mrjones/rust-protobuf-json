@@ -11,7 +11,7 @@ fn simple_proto_to_json() {
 
     let actual = super::proto_to_json(&p);
     let mut expected = serde_json::Map::new();
-    expected.insert("int_field".to_string(), serde_json::Value::I64(100));
+    expected.insert("int_field".to_string(), serde_json::Value::from(100 as i64));
     assert_eq!(serde_json::Value::Object(expected), actual);
     assert_eq!("{\"int_field\":100}", serde_json::to_string(&actual).unwrap());
 }
@@ -68,18 +68,18 @@ fn full_proto_to_json() {
     
     let actual = super::proto_to_json(&p);
     let mut expected = serde_json::Map::new();
-    expected.insert("double_field".to_string(), serde_json::Value::F64(1.0));
-    expected.insert("float_field".to_string(), serde_json::Value::F64(2.0));
-    expected.insert("int32_field".to_string(), serde_json::Value::I64(3));
-    expected.insert("int64_field".to_string(), serde_json::Value::I64(4));
-    expected.insert("uint32_field".to_string(), serde_json::Value::U64(5));
-    expected.insert("uint64_field".to_string(), serde_json::Value::U64(6));
-    expected.insert("sint32_field".to_string(), serde_json::Value::I64(7));
-    expected.insert("sint64_field".to_string(), serde_json::Value::I64(8));
-    expected.insert("fixed32_field".to_string(), serde_json::Value::U64(9));
-    expected.insert("fixed64_field".to_string(), serde_json::Value::U64(10));
-    expected.insert("sfixed32_field".to_string(), serde_json::Value::I64(11));
-    expected.insert("sfixed64_field".to_string(), serde_json::Value::I64(12));
+    expected.insert("double_field".to_string(), serde_json::Value::from(1.0 as f64));
+    expected.insert("float_field".to_string(), serde_json::Value::from(2.0 as f64));
+    expected.insert("int32_field".to_string(), serde_json::Value::from(3 as i64));
+    expected.insert("int64_field".to_string(), serde_json::Value::from(4 as i64));
+    expected.insert("uint32_field".to_string(), serde_json::Value::from(5 as u64));
+    expected.insert("uint64_field".to_string(), serde_json::Value::from(6 as u64));
+    expected.insert("sint32_field".to_string(), serde_json::Value::from(7 as i64));
+    expected.insert("sint64_field".to_string(), serde_json::Value::from(8 as i64));
+    expected.insert("fixed32_field".to_string(), serde_json::Value::from(9 as u64));
+    expected.insert("fixed64_field".to_string(), serde_json::Value::from(10 as u64));
+    expected.insert("sfixed32_field".to_string(), serde_json::Value::from(11 as i64));
+    expected.insert("sfixed64_field".to_string(), serde_json::Value::from(12 as i64));
     expected.insert("bool_field".to_string(), serde_json::Value::Bool(true));
     expected.insert("string_field".to_string(),
                     serde_json::Value::String("string_val".to_string()));
@@ -99,29 +99,29 @@ fn full_proto_to_json() {
     }
 
     expected.insert("repeated_double_field".to_string(),
-                    to_serde_array(vec![100., 200.], &serde_json::Value::F64));
+                    to_serde_array(vec![100., 200.], &|v| serde_json::Value::from(v)));
     expected.insert("repeated_float_field".to_string(),
-                    to_serde_array(vec![101., 201.], &serde_json::Value::F64));
+                    to_serde_array(vec![101., 201.], &|v| serde_json::Value::from(v)));
     expected.insert("repeated_int32_field".to_string(),
-                    to_serde_array(vec![102, 202], &serde_json::Value::I64));
+                    to_serde_array(vec![102, 202], &|v| serde_json::Value::from(v)));
     expected.insert("repeated_int64_field".to_string(),
-                    to_serde_array(vec![103, 203], &serde_json::Value::I64));
+                    to_serde_array(vec![103, 203], &|v| serde_json::Value::from(v)));
     expected.insert("repeated_uint32_field".to_string(),
-                    to_serde_array(vec![104, 204], &serde_json::Value::U64));
+                    to_serde_array(vec![104, 204], &|v| serde_json::Value::from(v)));
     expected.insert("repeated_uint64_field".to_string(),
-                    to_serde_array(vec![105, 205], &serde_json::Value::U64));
+                    to_serde_array(vec![105, 205], &|v| serde_json::Value::from(v)));
     expected.insert("repeated_sint32_field".to_string(),
-                    to_serde_array(vec![106, 206], &serde_json::Value::I64));
+                    to_serde_array(vec![106, 206], &|v| serde_json::Value::from(v)));
     expected.insert("repeated_sint64_field".to_string(),
-                    to_serde_array(vec![107, 207], &serde_json::Value::I64));
+                    to_serde_array(vec![107, 207], &|v| serde_json::Value::from(v)));
     expected.insert("repeated_fixed32_field".to_string(),
-                    to_serde_array(vec![108, 208], &serde_json::Value::U64));
+                    to_serde_array(vec![108, 208], &|v| serde_json::Value::from(v)));
     expected.insert("repeated_fixed64_field".to_string(),
-                    to_serde_array(vec![109, 209], &serde_json::Value::U64));
+                    to_serde_array(vec![109, 209], &|v| serde_json::Value::from(v)));
     expected.insert("repeated_sfixed32_field".to_string(),
-                    to_serde_array(vec![110, 210], &serde_json::Value::I64));
+                    to_serde_array(vec![110, 210], &|v| serde_json::Value::from(v)));
     expected.insert("repeated_sfixed64_field".to_string(),
-                    to_serde_array(vec![111, 211], &serde_json::Value::I64));
+                    to_serde_array(vec![111, 211], &|v| serde_json::Value::from(v)));
     expected.insert("repeated_bool_field".to_string(),
                     to_serde_array(vec![true, false], &serde_json::Value::Bool));
     expected.insert("repeated_string_field".to_string(),

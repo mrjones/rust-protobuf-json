@@ -1,11 +1,11 @@
 [package]
-authors = ["Matt Jones <jonesmr@gmail.com>"]
+authors = ["Matt Jones <jonesmr@gmail.com>, Drazen Urch <github@drazenur.ch>"]
 description = "Library for serializing Google protobuf objects as JSON using Rust."
 repository = "https://github.com/mrjones/rust-protobuf-json"
 license = "MIT"
 name = "protobuf-json"
-version = "0.1.0"
+version = "0.2.0"
 
 [dependencies]
 protobuf = "^1.0.24"
-serde_json = "^0.8.3"
+serde_json = "0.9"

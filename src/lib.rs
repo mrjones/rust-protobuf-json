@@ -1,25 +1,37 @@
 extern crate protobuf;
 extern crate serde_json;
 
+use protobuf::Message;
+use protobuf::descriptor::FieldDescriptorProto_Type;
+use protobuf::reflect::FieldDescriptor;
+
 #[cfg(test)]
 mod tests;
 
-pub fn proto_to_json(message: &protobuf::Message) -> serde_json::Value {
+pub fn proto_to_json(message: &Message) -> serde_json::Value {
     let mut map = serde_json::Map::new();
 
     for field in message.descriptor().fields() {
-        map.insert(field.name().to_string(), field_to_json(message, field));
+        match field_to_json(message, field) {
+            Some(x) => {
+                map.insert(field.name().to_string(), x)
+            },
+            None => continue
+        };
     }
-
-    return serde_json::Value::Object(map);
+    serde_json::Value::Object(map)
 }
 
-fn field_to_json(message: &protobuf::Message,
-                 field_descriptor: &protobuf::reflect::FieldDescriptor) -> serde_json::Value {
-    if field_descriptor.is_repeated() {
-        return repeated_field_to_json(message, field_descriptor);
+fn field_to_json(m: &Message, fd: &FieldDescriptor) -> Option<serde_json::Value> {
+    if fd.is_repeated() {
+        match fd.len_field(m) {
+            0 => None,
+            _ => Some(repeated_field_to_json(m, fd)),
+        }
+    } else if fd.has_field(m) {
+        Some(singular_field_to_json(m, fd))
     } else {
-        return singular_field_to_json(message, field_descriptor);
+        None
     }
 }
 
@@ -29,92 +41,90 @@ fn field_to_json(message: &protobuf::Message,
 // This function uses the len & get_item functions in order to create vector.
 #[allow(dead_code)]
 fn extract_vec_shim<'a, T>(
-    message: &'a protobuf::Message,
-    get_size_fn: &Fn(&protobuf::Message) -> usize,
-    extract_one_fn: &Fn(&'a protobuf::Message, usize) -> &'a T) -> Vec<&'a T> {
+    message: &'a Message,
+    get_size_fn: &Fn(&Message) -> usize,
+    extract_one_fn: &Fn(&'a Message, usize) -> &'a T) -> Vec<&'a T> {
 
     let size = get_size_fn(message);
     let mut v = Vec::new();
     for i in 0..size {
         v.push(extract_one_fn(message, i));
     }
-    return v;
+    v
 }
 
 fn repeated_to_serde_array<T>(
-    message: &protobuf::Message,
-    extract_fn: &Fn(&protobuf::Message) -> Vec<T>,
+    message: &Message,
+    extract_fn: &Fn(&Message) -> Vec<T>,
     convert_one_fn: &Fn(T) -> serde_json::Value) -> serde_json::Value {
 
-    return serde_json::Value::Array(
-        extract_fn(message).into_iter().map(convert_one_fn).collect());
+    serde_json::Value::Array(
+        extract_fn(message).into_iter().map(convert_one_fn).collect())
 }
 
-fn repeated_field_to_json(message: &protobuf::Message,
-                          field_descriptor: &protobuf::reflect::FieldDescriptor) -> serde_json::Value {
-    use protobuf::descriptor::FieldDescriptorProto_Type;
-    use serde_json::Value;
+fn repeated_field_to_json(message: &Message,
+                          field_descriptor: &FieldDescriptor) -> serde_json::Value {
 
     match field_descriptor.proto().get_field_type() {
         FieldDescriptorProto_Type::TYPE_DOUBLE => {
-            return repeated_to_serde_array(
+            repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_f64(m).to_vec(),
-                &Value::F64);
+                &|v| serde_json::Value::from(v))
         },
         FieldDescriptorProto_Type::TYPE_FLOAT => {
-            return repeated_to_serde_array(
+            repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_f32(m).to_vec(),
-                &|v| Value::F64(v as f64));
+                &|v| serde_json::Value::from(v))
         },
         FieldDescriptorProto_Type::TYPE_INT32 |
         FieldDescriptorProto_Type::TYPE_SINT32 |
         FieldDescriptorProto_Type::TYPE_SFIXED32 => {
-            return repeated_to_serde_array(
+            repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_i32(m).to_vec(),
-                &|v| Value::I64(v as i64));
+                &|v| serde_json::Value::from(v))
         },
         FieldDescriptorProto_Type::TYPE_INT64 |
         FieldDescriptorProto_Type::TYPE_SINT64 |
         FieldDescriptorProto_Type::TYPE_SFIXED64 => {
-            return repeated_to_serde_array(
+            repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_i64(m).to_vec(),
-                &Value::I64);
+                &|v| serde_json::Value::from(v))
         },
         FieldDescriptorProto_Type::TYPE_UINT32 |
         FieldDescriptorProto_Type::TYPE_FIXED32 => {
-            return repeated_to_serde_array(
+            repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_u32(m).to_vec(),
-                &|v| Value::U64(v as u64));
+                &|v| serde_json::Value::from(v))
         },
         FieldDescriptorProto_Type::TYPE_UINT64 |
         FieldDescriptorProto_Type::TYPE_FIXED64 => {
-            return repeated_to_serde_array(
+            repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_u64(m).to_vec(),
-                &Value::U64);
+                &|v| serde_json::Value::from(v))
         },
         FieldDescriptorProto_Type::TYPE_BOOL => {
-            return repeated_to_serde_array(
+            repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_bool(m).to_vec(),
-                &Value::Bool);
+                &serde_json::Value::Bool)
         },
         FieldDescriptorProto_Type::TYPE_STRING => {
-            return repeated_to_serde_array(
+            repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_str(m).to_vec(),
-                &Value::String);
+                &serde_json::Value::String)
         },
         FieldDescriptorProto_Type::TYPE_BYTES => {
-            return repeated_to_serde_array(
+            repeated_to_serde_array(
                 message,
                 &|m| field_descriptor.get_rep_bytes(m).to_vec(),
-                &|v| Value::String(std::str::from_utf8(&v).unwrap().to_string()));
+                &|v| serde_json::Value::String(std::str::from_utf8(&v).unwrap().to_string()))
         },
         FieldDescriptorProto_Type::TYPE_MESSAGE => {
             let mut sub_messages: Vec<&protobuf::Message> = Vec::new();
@@ -123,8 +133,8 @@ fn repeated_field_to_json(message: &protobuf::Message,
                     field_descriptor.get_rep_message_item(message, i));
             }
 
-            return Value::Array(sub_messages.into_iter().map(
-                |sub_message| proto_to_json(sub_message)).collect());
+            serde_json::Value::Array(sub_messages.into_iter().map(
+                |sub_message| proto_to_json(sub_message)).collect())
 
             /* TODO: why doesn't this work?
             return repeated_to_serde_array(
@@ -142,8 +152,8 @@ fn repeated_field_to_json(message: &protobuf::Message,
             for i in 0..field_descriptor.len_field(message) {
                 enums.push(field_descriptor.get_rep_enum_item(message, i));
             }
-            return Value::Array(enums.into_iter().map(
-                |e| Value::String(e.name().to_string())).collect());
+            serde_json::Value::Array(enums.into_iter().map(
+                |e| serde_json::Value::String(e.name().to_string())).collect())
         },
         FieldDescriptorProto_Type::TYPE_GROUP => unimplemented!(),
     }
@@ -151,54 +161,51 @@ fn repeated_field_to_json(message: &protobuf::Message,
 
 fn singular_field_to_json(message: &protobuf::Message,
                           field_descriptor: &protobuf::reflect::FieldDescriptor) -> serde_json::Value {
-    use protobuf::descriptor::FieldDescriptorProto_Type;
-    use serde_json::Value;
-
     match field_descriptor.proto().get_field_type() {
         FieldDescriptorProto_Type::TYPE_DOUBLE => {
-            return Value::F64(field_descriptor.get_f64(message));
+            serde_json::Value::from(field_descriptor.get_f64(message))
         },
         FieldDescriptorProto_Type::TYPE_FLOAT => {
-            return Value::F64(field_descriptor.get_f32(message) as f64);
+            serde_json::Value::from(field_descriptor.get_f32(message) as f64)
         },
         FieldDescriptorProto_Type::TYPE_INT32 |
         FieldDescriptorProto_Type::TYPE_SINT32 |
         FieldDescriptorProto_Type::TYPE_SFIXED32 => {
-            return Value::I64(field_descriptor.get_i32(message) as i64);
+            serde_json::Value::from(field_descriptor.get_i32(message) as i64)
         },
         FieldDescriptorProto_Type::TYPE_INT64 |
         FieldDescriptorProto_Type::TYPE_SINT64 |
         FieldDescriptorProto_Type::TYPE_SFIXED64 => {
-            return Value::I64(field_descriptor.get_i64(message));
+            serde_json::Value::from(field_descriptor.get_i64(message))
         },
         FieldDescriptorProto_Type::TYPE_UINT32 |
         FieldDescriptorProto_Type::TYPE_FIXED32 => {
-            return Value::U64(field_descriptor.get_u32(message) as u64);
+            serde_json::Value::from(field_descriptor.get_u32(message) as u64)
         },
         FieldDescriptorProto_Type::TYPE_UINT64 |
         FieldDescriptorProto_Type::TYPE_FIXED64 => {
-            return Value::U64(field_descriptor.get_u64(message));
+            serde_json::Value::from(field_descriptor.get_u64(message))
         },
         FieldDescriptorProto_Type::TYPE_BOOL => {
-            return Value::Bool(field_descriptor.get_bool(message));
+            serde_json::Value::Bool(field_descriptor.get_bool(message))
         },
         FieldDescriptorProto_Type::TYPE_STRING => {
-            return Value::String(field_descriptor.get_str(message).to_string());
+            serde_json::Value::String(field_descriptor.get_str(message).to_string())
         },
         FieldDescriptorProto_Type::TYPE_BYTES => {
-            return Value::String(
+            serde_json::Value::String(
                 std::str::from_utf8(
-                    field_descriptor.get_bytes(message)).unwrap().to_string());
+                    field_descriptor.get_bytes(message)).unwrap().to_string())
         },
         FieldDescriptorProto_Type::TYPE_MESSAGE => {
             let sub_message: &protobuf::Message =
                 field_descriptor.get_message(message);
-            return proto_to_json(sub_message);
+            proto_to_json(sub_message)
         },
         FieldDescriptorProto_Type::TYPE_ENUM => {
-            return Value::String(
-                field_descriptor.get_enum(message).name().to_string());
-            
+            serde_json::Value::String(
+                field_descriptor.get_enum(message).name().to_string())
+
         },
         FieldDescriptorProto_Type::TYPE_GROUP => unimplemented!(),
     }
