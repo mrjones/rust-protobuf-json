@@ -166,12 +166,12 @@ fn singular_field_to_json(message: &protobuf::Message,
             serde_json::Value::from(field_descriptor.get_f64(message))
         },
         FieldDescriptorProto_Type::TYPE_FLOAT => {
-            serde_json::Value::from(field_descriptor.get_f32(message) as f64)
+            serde_json::Value::from(f64::from(field_descriptor.get_f32(message)))
         },
         FieldDescriptorProto_Type::TYPE_INT32 |
         FieldDescriptorProto_Type::TYPE_SINT32 |
         FieldDescriptorProto_Type::TYPE_SFIXED32 => {
-            serde_json::Value::from(field_descriptor.get_i32(message) as i64)
+            serde_json::Value::from(i64::from(field_descriptor.get_i32(message)))
         },
         FieldDescriptorProto_Type::TYPE_INT64 |
         FieldDescriptorProto_Type::TYPE_SINT64 |
@@ -180,7 +180,7 @@ fn singular_field_to_json(message: &protobuf::Message,
         },
         FieldDescriptorProto_Type::TYPE_UINT32 |
         FieldDescriptorProto_Type::TYPE_FIXED32 => {
-            serde_json::Value::from(field_descriptor.get_u32(message) as u64)
+            serde_json::Value::from(u64::from(field_descriptor.get_u32(message)))
         },
         FieldDescriptorProto_Type::TYPE_UINT64 |
         FieldDescriptorProto_Type::TYPE_FIXED64 => {
