@@ -4,8 +4,8 @@ description = "Library for serializing Google protobuf objects as JSON using Rus
 repository = "https://github.com/mrjones/rust-protobuf-json"
 license = "MIT"
 name = "protobuf-json"
-version = "0.2.0"
+version = "0.3.0"
 
 [dependencies]
-protobuf = "^1.0.24"
-serde_json = "0.9"
+protobuf = "^1.4"
+serde_json = "^1.0"
