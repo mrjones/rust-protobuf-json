@@ -7,5 +7,5 @@ name = "protobuf-json"
 version = "0.3.0"
 
 [dependencies]
-protobuf = "^1.4"
+protobuf = "^2.0"
 serde_json = "^1.0"
